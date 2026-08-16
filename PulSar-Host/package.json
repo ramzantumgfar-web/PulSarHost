@@ -1,1 +1,388 @@
+// ======================================
+// 🚀 PulSar Host Core Server MAXIMUM
+// ======================================
 
+
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import helmet from "helmet";
+import { v4 as uuid } from "uuid";
+
+
+dotenv.config();
+
+
+
+const app = express();
+
+
+const PORT = process.env.PORT || 3000;
+
+
+
+// ============================
+// Настройки
+// ============================
+
+
+app.use(
+    helmet({
+        contentSecurityPolicy:false
+    })
+);
+
+
+app.use(cors());
+
+
+app.use(express.json());
+
+
+app.use(
+    express.static("public")
+);
+
+
+
+
+
+// ============================
+// Временная база данных
+// (потом подключим MongoDB)
+// ============================
+
+
+let users = [];
+
+
+let servers = [];
+
+
+
+
+
+
+
+// ============================
+// Главная проверка
+// ============================
+
+
+app.get("/api/status",(req,res)=>{
+
+
+    res.json({
+
+        service:"PulSar Host",
+
+        status:"online",
+
+        version:"MAXIMUM",
+
+        uptime:process.uptime(),
+
+        time:new Date()
+
+    });
+
+
+});
+
+
+
+
+
+
+
+
+// ============================
+// Регистрация
+// ============================
+
+
+app.post("/api/register",(req,res)=>{
+
+
+    const {name,email}=req.body;
+
+
+
+    if(!name || !email){
+
+        return res.status(400).json({
+
+            error:"Заполните данные"
+
+        });
+
+    }
+
+
+
+    const user={
+
+
+        id:uuid(),
+
+        name,
+
+        email,
+
+        balance:0,
+
+        servers:[]
+
+
+    };
+
+
+
+    users.push(user);
+
+
+
+    res.json({
+
+        message:"Пользователь создан",
+
+        user
+
+    });
+
+
+});
+
+
+
+
+
+
+
+
+
+// ============================
+// Профиль
+// ============================
+
+
+app.get("/api/users/:id",(req,res)=>{
+
+
+    const user = users.find(
+
+        u=>u.id===req.params.id
+
+    );
+
+
+    if(!user){
+
+        return res.status(404).json({
+
+            error:"Пользователь не найден"
+
+        });
+
+    }
+
+
+    res.json(user);
+
+
+});
+
+
+
+
+
+
+
+
+
+
+// ============================
+// Создание сервера
+// ============================
+
+
+app.post("/api/server/create",(req,res)=>{
+
+
+    const {userId,name,game}=req.body;
+
+
+
+    const server={
+
+
+        id:uuid(),
+
+        userId,
+
+        name:name || "Game Server",
+
+        game:game || "Minecraft",
+
+        status:"online",
+
+        created:new Date()
+
+
+    };
+
+
+
+    servers.push(server);
+
+
+
+    res.json({
+
+        message:"Сервер создан 🚀",
+
+        server
+
+
+    });
+
+
+});
+
+
+
+
+
+
+
+
+
+// ============================
+// Список серверов
+// ============================
+
+
+app.get("/api/servers",(req,res)=>{
+
+
+    res.json(servers);
+
+
+});
+
+
+
+
+
+
+
+
+
+// ============================
+// Управление сервером
+// ============================
+
+
+app.post("/api/server/:id/action",(req,res)=>{
+
+
+    const {action}=req.body;
+
+
+    const server = servers.find(
+
+        s=>s.id===req.params.id
+
+    );
+
+
+
+    if(!server){
+
+        return res.status(404).json({
+
+            error:"Сервер не найден"
+
+        });
+
+    }
+
+
+
+    if(action==="stop"){
+
+        server.status="offline";
+
+    }
+
+
+    if(action==="start"){
+
+        server.status="online";
+
+    }
+
+
+    if(action==="restart"){
+
+        server.status="restarting";
+
+
+        setTimeout(()=>{
+
+            server.status="online";
+
+        },2000);
+
+
+    }
+
+
+
+    res.json({
+
+        message:"Команда выполнена",
+
+        server
+
+
+    });
+
+
+});
+
+
+
+
+
+
+
+
+
+
+// ============================
+// Запуск
+// ============================
+
+
+app.listen(PORT,()=>{
+
+
+console.log(`
+
+🚀 PulSar Host MAXIMUM
+
+🌐 Порт: ${PORT}
+
+⚡ API: ONLINE
+
+🎮 Server Manager: READY
+
+🤖 Telegram Bot: PREPARED
+
+🧠 AI System: PREPARED
+
+`);
+
+
+});
